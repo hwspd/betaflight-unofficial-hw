@@ -328,6 +328,15 @@ uint32_t getFLASHSectorForEEPROM(void)
         failureMode(FAILURE_CONFIG_STORE_FAILURE);
     }
 }
+#elif defined(GD32H7)
+static void gd32h7ValidateConfigFlashAddress(void)
+{
+    if ((uint32_t)&__config_start > 0x081FE000) {
+        while (1) {
+            failureMode(FAILURE_CONFIG_STORE_FAILURE);
+        }
+    }
+}
 #endif
 
 #if defined(X32M7)
@@ -378,6 +387,8 @@ void configUnlock(void)
     DAL_FLASH_Unlock();
 #elif defined(AT32F4)
     flash_unlock();
+#elif defined(GD32H7)
+    fmc_unlock();
 #else
     FLASH_Unlock();
 #endif
@@ -400,6 +411,8 @@ void configLock(void)
         flash_lock();
 #elif defined(APM32F4)
         DAL_FLASH_Lock();
+#elif defined(GD32H7)
+        fmc_lock();
 #else
         FLASH_Lock();
 #endif
@@ -425,6 +438,8 @@ void configClearFlags(void)
     __DAL_FLASH_CLEAR_FLAG(FLASH_FLAG_EOP | FLASH_FLAG_OPERR | FLASH_FLAG_WRPERR | FLASH_FLAG_PGAERR | FLASH_FLAG_PGPERR | FLASH_FLAG_PGSERR);
 #elif defined(X32M7)
     // SMU flash operations return status directly.
+#elif defined(GD32H7)
+    fmc_flag_clear(FMC_FLAG_END | FMC_FLAG_WPERR | FMC_FLAG_PGSERR | FMC_FLAG_RPERR | FMC_FLAG_RSERR | FMC_FLAG_ECCCOR | FMC_FLAG_ECCDET);
 #elif defined(UNIT_TEST) || defined(SIMULATOR_BUILD)
     // NOP
 #else
@@ -597,6 +612,20 @@ configStreamerResult_e configWriteWord(uintptr_t address, config_streamer_buffer
     STATIC_ASSERT(CONFIG_STREAMER_BUFFER_SIZE == 16,  "CONFIG_STREAMER_BUFFER_SIZE does not match written size");
     const HAL_StatusTypeDef status = HAL_FLASH_Program(FLASH_TYPEPROGRAM_QUADWORD, address, (uint32_t)buffer);
     if (status != HAL_OK) {
+        return CONFIG_RESULT_ADDRESS_INVALID;
+    }
+#elif defined(GD32H7)
+    if (address % FLASH_PAGE_SIZE == 0) {
+        gd32h7ValidateConfigFlashAddress();
+        const fmc_state_enum eraseStatus = fmc_sector_erase(address);
+        if (eraseStatus != FMC_READY) {
+            return CONFIG_RESULT_FAILURE;
+        }
+    }
+
+    STATIC_ASSERT(CONFIG_STREAMER_BUFFER_SIZE == sizeof(uint32_t),  "CONFIG_STREAMER_BUFFER_SIZE does not match written size");
+    const fmc_state_enum status = fmc_word_program(address, *buffer);
+    if (status != FMC_READY) {
         return CONFIG_RESULT_ADDRESS_INVALID;
     }
 #else
