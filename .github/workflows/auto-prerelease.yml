@@ -1,0 +1,136 @@
+name: Auto Prerelease
+
+on:
+  push:
+    branches:
+      - '**'
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+concurrency:
+  group: auto-prerelease-${{ github.ref }}
+  cancel-in-progress: false
+
+jobs:
+  gd32-prerelease:
+    name: Build GD32 prerelease
+    runs-on: ubuntu-latest
+    if: ${{ github.event_name == 'workflow_dispatch' || github.ref_name == github.event.repository.default_branch }}
+    env:
+      TARGETS: GD32F460RG GD32H757VI
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v5
+        with:
+          fetch-depth: 0
+
+      - name: Init required submodules
+        run: git submodule update --init --checkout -- src/config lib/modules/GD32H7
+
+      - name: Compute tools cache key
+        id: tools-key
+        run: echo "key=${{ runner.os }}-tools-v2-${{ hashFiles('mk/tools.mk', 'src/platform/*/mk/*.mk') }}" >> "$GITHUB_OUTPUT"
+
+      - name: Restore ARM toolchain cache
+        uses: actions/cache/restore@v5
+        id: cache-tools
+        with:
+          path: tools
+          key: ${{ steps.tools-key.outputs.key }}-gd32-auto-prerelease
+          restore-keys: |
+            ${{ steps.tools-key.outputs.key }}-gd32-auto-prerelease
+            ${{ steps.tools-key.outputs.key }}-arm
+
+      - name: Install ARM toolchain
+        if: steps.cache-tools.outputs.cache-hit != 'true'
+        run: make SDK=gd32h7 platform-tools-install
+
+      - name: Save ARM toolchain cache
+        if: steps.cache-tools.outputs.cache-hit != 'true'
+        uses: actions/cache/save@v5
+        with:
+          path: tools
+          key: ${{ steps.tools-key.outputs.key }}-gd32-auto-prerelease
+
+      - name: Hydrate configuration
+        run: make configs
+
+      - name: Build GD32 targets
+        shell: bash
+        run: |
+          set -euo pipefail
+          mkdir -p release-assets
+          rm -f obj/betaflight_*_GD32F460RG.hex obj/betaflight_*_GD32H757VI.hex
+
+          for target in $TARGETS; do
+            make EXTRA_FLAGS=-Werror "$target" 2>&1 | tee "release-assets/${target}.log"
+            cp obj/betaflight_*_"${target}".hex release-assets/
+          done
+
+          (
+            cd release-assets
+            sha256sum betaflight_*.hex *.log > SHA256SUMS
+          )
+
+      - name: Prepare release metadata
+        id: release-meta
+        shell: bash
+        run: |
+          set -euo pipefail
+          short_sha="${GITHUB_SHA::12}"
+          tag="auto-prerelease-${short_sha}"
+
+          cat > release-assets/RELEASE_NOTES.md <<EOF
+          # ${tag}
+
+          Unofficial Betaflight fork build for experimental hardware validation. Not affiliated with or endorsed by Betaflight maintainers. Use at your own risk.
+
+          Commit: ${GITHUB_SHA}
+          Branch: ${GITHUB_REF_NAME}
+
+          ## Included targets
+
+          - GD32F460RG
+          - GD32H757VI
+
+          ## Validation
+
+          - Build completed in GitHub Actions for both included targets.
+          - Hardware-in-the-loop and runtime validation are not included in this automated prerelease.
+
+          ## Assets
+
+          - betaflight_*_GD32F460RG.hex
+          - betaflight_*_GD32H757VI.hex
+          - GD32F460RG.log
+          - GD32H757VI.log
+          - SHA256SUMS
+          EOF
+
+          echo "tag=${tag}" >> "$GITHUB_OUTPUT"
+          echo "title=Auto prerelease ${short_sha}" >> "$GITHUB_OUTPUT"
+
+      - name: Replace existing prerelease for this commit
+        env:
+          GH_TOKEN: ${{ github.token }}
+          TAG: ${{ steps.release-meta.outputs.tag }}
+        run: |
+          gh release delete "$TAG" --cleanup-tag --yes || true
+          git push origin ":refs/tags/${TAG}" || true
+
+      - name: Create prerelease
+        env:
+          GH_TOKEN: ${{ github.token }}
+          TAG: ${{ steps.release-meta.outputs.tag }}
+          TITLE: ${{ steps.release-meta.outputs.title }}
+        run: |
+          gh release create "$TAG" \
+            release-assets/betaflight_*.hex \
+            release-assets/*.log \
+            release-assets/SHA256SUMS \
+            --title "$TITLE" \
+            --notes-file release-assets/RELEASE_NOTES.md \
+            --target "$GITHUB_SHA" \
+            --prerelease
