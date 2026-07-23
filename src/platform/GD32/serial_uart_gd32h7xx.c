@@ -42,10 +42,6 @@
 #include "drivers/serial_uart.h"
 #include "drivers/serial_uart_impl.h"
 
-#define NVIC_PRIO_SERIALUART0_TXDMA NVIC_PRIO_SERIALUART1_TXDMA
-#define NVIC_PRIO_SERIALUART0_RXDMA NVIC_PRIO_SERIALUART1_RXDMA
-#define NVIC_PRIO_SERIALUART0       NVIC_PRIO_SERIALUART1
-
 #ifndef UART0_TX_DMA_CH_BASE
 #define UART0_TX_DMA_CH_BASE NULL
 #endif
