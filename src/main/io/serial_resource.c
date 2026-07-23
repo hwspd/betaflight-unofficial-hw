@@ -39,7 +39,7 @@ serialType_e serialType(serialPortIdentifier_e identifier)
 #endif
 #ifdef USE_UART
     if (identifier >= SERIAL_PORT_UART_FIRST
-        && identifier < SERIAL_PORT_UART_FIRST + SERIAL_UART_MAX) {
+        && identifier < (serialPortIdentifier_e)(SERIAL_PORT_UART_FIRST + SERIAL_UART_MAX)) {
         const unsigned idx = identifier - SERIAL_PORT_UART_FIRST;
         if (BIT(idx) & SERIAL_UART_MASK) {
             return SERIALTYPE_UART;
@@ -62,7 +62,7 @@ serialType_e serialType(serialPortIdentifier_e identifier)
     }
 #endif
 #ifdef USE_SOFTSERIAL
-    if (identifier >= SERIAL_PORT_SOFTSERIAL_FIRST && identifier < SERIAL_PORT_SOFTSERIAL_FIRST + SERIAL_SOFTSERIAL_MAX) {
+    if (identifier >= SERIAL_PORT_SOFTSERIAL_FIRST && identifier < (serialPortIdentifier_e)(SERIAL_PORT_SOFTSERIAL_FIRST + SERIAL_SOFTSERIAL_MAX)) {
         // sotserials always start from 1, without holes
         return SERIALTYPE_SOFTSERIAL;
     }

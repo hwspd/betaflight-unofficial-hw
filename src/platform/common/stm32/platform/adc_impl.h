@@ -49,7 +49,7 @@
 #else
 #define ADC_TAG_MAP_COUNT 31
 #endif
-#elif defined(GD32H7)
+#elif defined(GD32F4) || defined(GD32H7)
 #define ADC_TAG_MAP_COUNT 16
 #elif defined(STM32G4)
 #ifdef USE_ADC_INTERNAL
@@ -115,7 +115,7 @@ typedef struct adcDevice_s {
 #endif
 #if !defined(USE_DMA_SPEC)
     dmaResource_t* dmaResource;
-#if defined(STM32F4) || defined(STM32F7) || defined(STM32H7) || defined(STM32G4) || defined(STM32H5) || defined(STM32C5) || defined(APM32F4) || defined(STM32N6)
+#if defined(STM32F4) || defined(STM32F7) || defined(STM32H7) || defined(STM32G4) || defined(STM32H5) || defined(STM32C5) || defined(APM32F4) || defined(STM32N6) || defined(GD32F4)
     uint32_t channel;
 #endif
 #endif // !defined(USE_DMA_SPEC)
@@ -239,4 +239,13 @@ void adcGetChannelValues(void);
 #define TEMPSENSOR_CAL2_TEMP               ((int32_t) -40)
 #define TEMPSENSOR_CAL1_ADDR               ((uint16_t*) (0x1FF0F7C0))
 #define TEMPSENSOR_CAL2_ADDR               ((uint16_t*) (0x1FF0F7C2))
+#endif
+
+#ifdef GD32F4
+#define VREFINT_EXPECTED                   (1489U)  // 1.2 / 3.3 * 4095
+#define VREFINT_CAL_VREF                   (3300U)
+#define TEMPSENSOR_CAL_VREFANALOG          (3300U)
+#define TEMPSENSOR_CAL1_TEMP               ((int32_t)25)
+#define TEMPSENSOR_CAL1_V                  (1.40f)
+#define TEMPSENSOR_SLOPE                   (-4.4f /* mV/C */)
 #endif

@@ -108,7 +108,7 @@ void pgResetFn_serialUartConfig(serialUartConfig_t *config)
 
     for (unsigned i = 0; i < ARRAYLEN(uartDmaopt); i++) {
         const int resourceIndex = serialResourceIndex(uartDmaopt[i].identifier);
-        if (resourceIndex >= 0 && resourceIndex < UARTDEV_CONFIG_MAX) {  // hadle corrupted config gracefuly
+        if (resourceIndex >= 0 && resourceIndex < (int)UARTDEV_CONFIG_MAX) {  // hadle corrupted config gracefuly
             config[resourceIndex].txDmaopt = uartDmaopt[i].txDmaopt;
             config[resourceIndex].rxDmaopt = uartDmaopt[i].rxDmaopt;
         }

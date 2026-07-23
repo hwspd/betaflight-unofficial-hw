@@ -24,7 +24,13 @@
 
 enum rcc_reg {
     RCC_EMPTY = 0,   // make sure that default value (0) does not enable anything
-#ifdef GD32H7
+#if defined(GD32F4)
+    RCC_AHB1,
+    RCC_AHB2,
+    RCC_AHB3,
+    RCC_APB1,
+    RCC_APB2,
+#elif defined(GD32H7)
     RCC_AHB1,
     RCC_AHB2,
     RCC_AHB3,
@@ -124,6 +130,12 @@ enum rcc_reg {
 #define RCC_APB2(periph) RCC_ENCODE(RCC_APB2, RCC_APB2ENR_ ## periph ## EN)
 #define RCC_APB1(periph) RCC_ENCODE(RCC_APB1, RCC_APB1ENR_ ## periph ## EN)
 #define RCC_AHB1(periph) RCC_ENCODE(RCC_AHB1, RCC_AHB1ENR_ ## periph ## EN)
+#elif defined(GD32F4)
+#define RCC_AHB1(periph) RCC_ENCODE(RCC_AHB1, RCU_AHB1EN_ ## periph ## EN)
+#define RCC_AHB2(periph) RCC_ENCODE(RCC_AHB2, RCU_AHB2EN_ ## periph ## EN)
+#define RCC_AHB3(periph) RCC_ENCODE(RCC_AHB3, RCU_AHB3EN_ ## periph ## EN)
+#define RCC_APB1(periph) RCC_ENCODE(RCC_APB1, RCU_APB1EN_ ## periph ## EN)
+#define RCC_APB2(periph) RCC_ENCODE(RCC_APB2, RCU_APB2EN_ ## periph ## EN)
 #elif defined(GD32H7)
 #define RCC_AHB1(periph) RCC_ENCODE(RCC_AHB1, RCU_AHB1EN_ ## periph ## EN)
 #define RCC_AHB2(periph) RCC_ENCODE(RCC_AHB2, RCU_AHB2EN_ ## periph ## EN)

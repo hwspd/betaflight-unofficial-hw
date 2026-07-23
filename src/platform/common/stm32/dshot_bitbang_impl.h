@@ -93,7 +93,7 @@
 #elif defined(X32M7)
 #define BB_GPIO_PULLDOWN GPIO_PULL_DOWN
 #define BB_GPIO_PULLUP GPIO_PULL_UP
-#elif defined(GD32H7)
+#elif defined(GD32F4) || defined(GD32H7)
 #define BB_GPIO_PULLDOWN GPIO_PUPD_PULLDOWN
 #define BB_GPIO_PULLUP   GPIO_PUPD_PULLUP
 #else
@@ -114,7 +114,7 @@ typedef struct dmaRegCache_s {
     uint32_t CNDTR;
     uint32_t CPAR;
     uint32_t CMAR;
-#elif defined(GD32H7)
+#elif defined(GD32F4) || defined(GD32H7)
     uint32_t CHCTL;
     uint32_t CHCNT;
     uint32_t CHPADDR;

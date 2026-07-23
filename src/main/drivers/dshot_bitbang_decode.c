@@ -116,6 +116,10 @@ uint32_t decode_bb_bitband( uint16_t buffer[], uint32_t count, uint32_t bit)
     memset(sequence, 0, sizeof(sequence));
     sequenceIndex = 0;
 #endif
+    if (count < MIN_VALID_BBSAMPLES) {
+        return DSHOT_TELEMETRY_NOEDGE;
+    }
+
     uint32_t value = 0;
 
     bitBandWord_t* p = (bitBandWord_t*)BITBAND_SRAM((uint32_t)buffer, bit);
@@ -269,6 +273,10 @@ FAST_CODE uint32_t decode_bb( uint16_t buffer[], uint32_t count, uint32_t bit)
     memset(sequence, 0, sizeof(sequence));
     sequenceIndex = 0;
 #endif
+    if (count < MIN_VALID_BBSAMPLES) {
+        return DSHOT_TELEMETRY_NOEDGE;
+    }
+
     uint32_t mask = 1 << bit;
 
 #ifdef DEBUG_BBDECODE

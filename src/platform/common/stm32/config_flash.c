@@ -328,6 +328,50 @@ uint32_t getFLASHSectorForEEPROM(void)
         failureMode(FAILURE_CONFIG_STORE_FAILURE);
     }
 }
+#elif defined(GD32F4)
+static uint32_t getFLASHSectorForEEPROM(void)
+{
+    if ((uint32_t)&__config_start <= 0x08003FFF) {
+        return CTL_SECTOR_NUMBER_0;
+    }
+    if ((uint32_t)&__config_start <= 0x08007FFF) {
+        return CTL_SECTOR_NUMBER_1;
+    }
+    if ((uint32_t)&__config_start <= 0x0800BFFF) {
+        return CTL_SECTOR_NUMBER_2;
+    }
+    if ((uint32_t)&__config_start <= 0x0800FFFF) {
+        return CTL_SECTOR_NUMBER_3;
+    }
+    if ((uint32_t)&__config_start <= 0x0801FFFF) {
+        return CTL_SECTOR_NUMBER_4;
+    }
+    if ((uint32_t)&__config_start <= 0x0803FFFF) {
+        return CTL_SECTOR_NUMBER_5;
+    }
+    if ((uint32_t)&__config_start <= 0x0805FFFF) {
+        return CTL_SECTOR_NUMBER_6;
+    }
+    if ((uint32_t)&__config_start <= 0x0807FFFF) {
+        return CTL_SECTOR_NUMBER_7;
+    }
+    if ((uint32_t)&__config_start <= 0x0809FFFF) {
+        return CTL_SECTOR_NUMBER_8;
+    }
+    if ((uint32_t)&__config_start <= 0x080BFFFF) {
+        return CTL_SECTOR_NUMBER_9;
+    }
+    if ((uint32_t)&__config_start <= 0x080DFFFF) {
+        return CTL_SECTOR_NUMBER_10;
+    }
+    if ((uint32_t)&__config_start <= 0x080FFFFF) {
+        return CTL_SECTOR_NUMBER_11;
+    }
+
+    while (1) {
+        failureMode(FAILURE_CONFIG_STORE_FAILURE);
+    }
+}
 #elif defined(GD32H7)
 static void gd32h7ValidateConfigFlashAddress(void)
 {
@@ -387,7 +431,7 @@ void configUnlock(void)
     DAL_FLASH_Unlock();
 #elif defined(AT32F4)
     flash_unlock();
-#elif defined(GD32H7)
+#elif defined(GD32F4) || defined(GD32H7)
     fmc_unlock();
 #else
     FLASH_Unlock();
@@ -411,7 +455,7 @@ void configLock(void)
         flash_lock();
 #elif defined(APM32F4)
         DAL_FLASH_Lock();
-#elif defined(GD32H7)
+#elif defined(GD32F4) || defined(GD32H7)
         fmc_lock();
 #else
         FLASH_Lock();
@@ -438,6 +482,8 @@ void configClearFlags(void)
     __DAL_FLASH_CLEAR_FLAG(FLASH_FLAG_EOP | FLASH_FLAG_OPERR | FLASH_FLAG_WRPERR | FLASH_FLAG_PGAERR | FLASH_FLAG_PGPERR | FLASH_FLAG_PGSERR);
 #elif defined(X32M7)
     // SMU flash operations return status directly.
+#elif defined(GD32F4)
+    fmc_flag_clear(FMC_FLAG_END | FMC_FLAG_OPERR | FMC_FLAG_WPERR | FMC_FLAG_PGMERR | FMC_FLAG_PGSERR);
 #elif defined(GD32H7)
     fmc_flag_clear(FMC_FLAG_END | FMC_FLAG_WPERR | FMC_FLAG_PGSERR | FMC_FLAG_RPERR | FMC_FLAG_RSERR | FMC_FLAG_ECCCOR | FMC_FLAG_ECCDET);
 #elif defined(UNIT_TEST) || defined(SIMULATOR_BUILD)
@@ -612,6 +658,19 @@ configStreamerResult_e configWriteWord(uintptr_t address, config_streamer_buffer
     STATIC_ASSERT(CONFIG_STREAMER_BUFFER_SIZE == 16,  "CONFIG_STREAMER_BUFFER_SIZE does not match written size");
     const HAL_StatusTypeDef status = HAL_FLASH_Program(FLASH_TYPEPROGRAM_QUADWORD, address, (uint32_t)buffer);
     if (status != HAL_OK) {
+        return CONFIG_RESULT_ADDRESS_INVALID;
+    }
+#elif defined(GD32F4)
+    if (address % FLASH_PAGE_SIZE == 0) {
+        const fmc_state_enum eraseStatus = fmc_sector_erase(getFLASHSectorForEEPROM());
+        if (eraseStatus != FMC_READY) {
+            return CONFIG_RESULT_FAILURE;
+        }
+    }
+
+    STATIC_ASSERT(CONFIG_STREAMER_BUFFER_SIZE == sizeof(uint32_t),  "CONFIG_STREAMER_BUFFER_SIZE does not match written size");
+    const fmc_state_enum status = fmc_word_program(address, *buffer);
+    if (status != FMC_READY) {
         return CONFIG_RESULT_ADDRESS_INVALID;
     }
 #elif defined(GD32H7)
