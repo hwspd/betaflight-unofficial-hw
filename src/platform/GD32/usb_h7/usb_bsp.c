@@ -66,9 +66,13 @@ __IO uint16_t timer_prescaler = 5U;
 */
 void usb_rcu_config(void)
 {
+    rcu_periph_clock_enable(RCU_PMU);
+
     pmu_usb_regulator_enable();
     pmu_usb_voltage_detector_enable();
-    while(SET != pmu_flag_get(PMU_FLAG_USB33RF)) {
+
+    uint32_t timeout = 0x100000U;
+    while((SET != pmu_flag_get(PMU_FLAG_USB33RF)) && (timeout-- > 0U)) {
     }
 
 #ifndef USE_IRC48M
@@ -126,6 +130,15 @@ void usb_rcu_config(void)
 */
 void usb_gpio_config(void)
 {
+#if defined(USE_USB_FS) && defined(USE_USBHS0)
+    rcu_periph_clock_enable(RCU_GPIOA);
+
+    /* USBHS0 full-speed internal PHY uses PA11(DM) and PA12(DP). */
+    gpio_mode_set(GPIOA, GPIO_MODE_AF, GPIO_PUPD_NONE, GPIO_PIN_11 | GPIO_PIN_12);
+    gpio_output_options_set(GPIOA, GPIO_OTYPE_PP, GPIO_OSPEED_85MHZ, GPIO_PIN_11 | GPIO_PIN_12);
+    gpio_af_set(GPIOA, GPIO_AF_10, GPIO_PIN_11 | GPIO_PIN_12);
+#endif
+
 #ifdef USE_ULPI_PHY
 
 #ifdef USE_USBHS0
