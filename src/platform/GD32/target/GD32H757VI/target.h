@@ -82,6 +82,9 @@
 #define TARGET_IO_PORTE 0xffff
 #define TARGET_IO_PORTF 0xffff
 
+#define LED0_PIN PE5
+#define LED1_PIN PE4
+
 #define USE_I2C
 #define I2C_FULL_RECONFIGURABILITY
 
