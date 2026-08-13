@@ -56,9 +56,6 @@ ubuntu*.log
 # EEPROM image file (created by SITL)
 eeprom.bin
 
-# local board documentation (not tracked)
-/src/config-local/configs/GD32H757V1STARTV1/SCHEMATIC-ERRORS.md
-
 # config used for building targets
 # changed to submodule
 #/src/config
