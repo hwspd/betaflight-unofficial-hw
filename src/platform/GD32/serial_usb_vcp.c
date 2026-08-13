@@ -273,4 +273,12 @@ uint8_t usbVcpIsConnected(void)
 {
     return usbIsConnected();
 }
+
+uint8_t usbVcpIsActive(void)
+{
+    // Unplugging stops the SOFs, which suspends the device out of CONFIGURED.
+    // usbIsConnected() alone cannot see this: without VBUS sensing there is no
+    // disconnect interrupt, so the state never returns to UNCONNECTED.
+    return usbIsConnected() && usbIsConfigured();
+}
 #endif
