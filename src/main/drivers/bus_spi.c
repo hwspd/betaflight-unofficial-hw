@@ -529,6 +529,9 @@ FAST_IRQ_HANDLER void spiIrqHandler(const extDevice_t *dev)
     busDevice_t *bus = dev->bus;
     busSegment_t *nextSegment;
 
+    // A BUS_BUSY callback can rewind curSegment before the CS decision below.
+    const bool negateCS = bus->curSegment->negateCS;
+
     if (bus->curSegment->callback) {
         switch(bus->curSegment->callback(dev->callbackArg)) {
         case BUS_BUSY:
@@ -574,8 +577,6 @@ FAST_IRQ_HANDLER void spiIrqHandler(const extDevice_t *dev)
         }
     } else {
         // Do as much processing as possible before asserting CS to avoid violating minimum high time
-        bool negateCS = bus->curSegment->negateCS;
-
         bus->curSegment = nextSegment;
 
         // After the completion of the first segment setup the init structure for the subsequent segment

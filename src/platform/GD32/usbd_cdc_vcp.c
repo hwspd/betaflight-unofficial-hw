@@ -206,9 +206,9 @@ static uint16_t VCP_DataTx(const uint8_t* Buf, uint32_t Len)
 
         Bounded to 2ms: host may not be polling the IN endpoint yet at connect.
     */
-    uint32_t deadline = millis() + 2;
+    uint32_t start = millis();
     while (USB_Tx_State != 0) {
-        if (millis() >= deadline) {
+        if (millis() - start > 2) {
             return 0;
         }
     }
@@ -216,9 +216,9 @@ static uint16_t VCP_DataTx(const uint8_t* Buf, uint32_t Len)
     uint32_t i;
     for (i = 0; i < Len; i++) {
         // Bounded per byte; return partial count on timeout.
-        deadline = millis() + 2;
+        start = millis();
         while (((APP_Rx_ptr_in + 1) % APP_RX_DATA_SIZE) == APP_Rx_ptr_out) {
-            if (millis() >= deadline) {
+            if (millis() - start > 2) {
                 return i;
             }
         }
