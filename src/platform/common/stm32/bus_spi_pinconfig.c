@@ -957,6 +957,65 @@ const spiHardware_t spiHardware[] = {
     #endif
 #endif
 
+#ifdef GD32H7
+    {
+        .device = SPIDEV_0,
+        .reg = (spiResource_t *)SPI0,
+        .sckPins = {
+            { DEFIO_TAG_E(PA5), GPIO_AF_5 },
+        },
+        .misoPins = {
+            { DEFIO_TAG_E(PA6), GPIO_AF_5 },
+        },
+        .mosiPins = {
+            { DEFIO_TAG_E(PA7), GPIO_AF_5 },
+        },
+        .rcc = RCC_APB2(SPI0),
+    },
+    {
+        .device = SPIDEV_1,
+        .reg = (spiResource_t *)SPI1,
+        .sckPins = {
+            { DEFIO_TAG_E(PB13), GPIO_AF_5 },
+        },
+        .misoPins = {
+            { DEFIO_TAG_E(PB14), GPIO_AF_5 },
+        },
+        .mosiPins = {
+            { DEFIO_TAG_E(PB15), GPIO_AF_5 },
+        },
+        .rcc = RCC_APB1(SPI1),
+    },
+    {
+        .device = SPIDEV_2,
+        .reg = (spiResource_t *)SPI2,
+        .sckPins = {
+            { DEFIO_TAG_E(PC10), GPIO_AF_6 },
+        },
+        .misoPins = {
+            { DEFIO_TAG_E(PC11), GPIO_AF_6 },
+        },
+        .mosiPins = {
+            { DEFIO_TAG_E(PB2), GPIO_AF_7 },
+        },
+        .rcc = RCC_APB1(SPI2),
+    },
+    {
+        .device = SPIDEV_3,
+        .reg = (spiResource_t *)SPI3,
+        .sckPins = {
+            { DEFIO_TAG_E(PE12), GPIO_AF_5 },
+        },
+        .misoPins = {
+            { DEFIO_TAG_E(PE13), GPIO_AF_5 },
+        },
+        .mosiPins = {
+            { DEFIO_TAG_E(PE14), GPIO_AF_5 },
+        },
+        .rcc = RCC_APB2(SPI3),
+    },
+#endif
+
 };
 
 void spiPinConfigure(const spiPinConfig_t *pConfig)

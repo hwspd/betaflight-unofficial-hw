@@ -37,6 +37,7 @@
 #include "drivers/dma.h"
 #include "platform/dma.h"
 #include "drivers/sensor.h"
+#include "drivers/time.h"
 #include "drivers/adc.h"
 #include "platform/adc_impl.h"
 
@@ -128,22 +129,17 @@ static void adcInitInternalInjected(const adcConfig_t *config)
 {
     uint32_t adc_periph = PERIPH_INT(ADC2);    // Note: Only H7-ADC2 have temperature sensor, different with F4
 
-    /* ADC clock config */
-    rcu_adc_clock_config(IDX_ADC2, RCU_ADCSRC_PER);
-
     adc_internal_channel_config(ADC_CHANNEL_INTERNAL_TEMPSENSOR, ENABLE);
     /* enable internal reference voltage channel */
     adc_internal_channel_config(ADC_CHANNEL_INTERNAL_VREFINT, ENABLE);
-    /* enable high precision temperature sensor channel */
-    adc_internal_channel_config(ADC_CHANNEL_INTERNAL_HP_TEMPSENSOR, ENABLE);
 
     /* ADC contineous function disable */
     adc_special_function_config(adc_periph, ADC_CONTINUOUS_MODE, DISABLE);
 
     adc_channel_length_config(adc_periph, ADC_INSERTED_CHANNEL, 2);
 
-    adc_inserted_channel_config(adc_periph, 0, ADC_CHANNEL_18, 638); // ADC_Channel_TempSensor
-    adc_inserted_channel_config(adc_periph, 1, ADC_CHANNEL_19, 638); // ADC_Channel_Vrefint
+    adc_inserted_channel_config(adc_periph, 0, ADC_CHANNEL_18, 480); // ADC_Channel_TempSensor
+    adc_inserted_channel_config(adc_periph, 1, ADC_CHANNEL_19, 480); // ADC_Channel_Vrefint
 
     /* ADC trigger config */
     adc_external_trigger_config(adc_periph, ADC_INSERTED_CHANNEL, EXTERNAL_TRIGGER_DISABLE);
@@ -165,11 +161,17 @@ static void adcInitInternalInjected(const adcConfig_t *config)
 // 480cycles@15.0MHz = 32us
 
 static bool adcInternalConversionInProgress = false;
+static uint32_t adcInternalConversionStartMs = 0;
 
 bool adcInternalIsBusy(void)
 {
     if (adcInternalConversionInProgress) {
         if (adc_flag_get(PERIPH_INT(ADC2), ADC_FLAG_EOIC) != RESET) {
+            adcInternalConversionInProgress = false;
+        } else if (millis() - adcInternalConversionStartMs > 100) {
+            // The injected conversion never completed. Give up so that
+            // adcInternalInit()'s busy-wait does not hang boot. Temperature
+            // and VREF readings will be stale/zero until this is resolved.
             adcInternalConversionInProgress = false;
         }
     }
@@ -184,6 +186,7 @@ void adcInternalStartConversion(void)
     adc_software_trigger_enable(adc_periph, ADC_INSERTED_CHANNEL);
 
     adcInternalConversionInProgress = true;
+    adcInternalConversionStartMs = millis();
 }
 
 uint16_t adcInternalRead(adcSource_e source)
@@ -264,9 +267,8 @@ void adcInit(const adcConfig_t *config)
     if (device != ADCDEV_2 || !adcActive) {
         // adc_clock_config(adc_periph, ADC_CLK_ASYNC_DIV64);
         RCC_ClockCmd(adcHardware[ADCDEV_2].rccADC, ENABLE);
-        adc_clock_config(adc_periph, ADC_CLK_ASYNC_DIV64);
+        adc_clock_config(adc_periph, ADC_CLK_SYNC_HCLK_DIV6);
         adcInitDevice(adc_periph, 2);
-        adc_enable(adc_periph);
     }
 
     // Initialize for injected conversion
@@ -274,6 +276,16 @@ void adcInit(const adcConfig_t *config)
 
     adcOperatingConfig[ADC_VREFINT].enabled = true;
     adcOperatingConfig[ADC_TEMPSENSOR].enabled = true;
+
+    // The GD32H7 ADC must be calibrated after it is enabled, otherwise
+    // conversions never start and adcInternalIsBusy() spins forever waiting
+    // for the end-of-injected-conversion flag.
+    if (device != ADCDEV_2 || !adcActive) {
+        adc_enable(adc_periph);
+        adc_calibration_mode_config(adc_periph, ADC_CALIBRATION_OFFSET);
+        adc_calibration_number(adc_periph, ADC_CALIBRATION_NUM1);
+        adc_calibration_enable(adc_periph);
+    }
 
     if (!adcActive) {
         return;
@@ -295,6 +307,9 @@ void adcInit(const adcConfig_t *config)
 
     adc_dma_mode_enable((uint32_t)(adc.ADCx));
     adc_enable((uint32_t)(adc.ADCx));
+    adc_calibration_mode_config((uint32_t)(adc.ADCx), ADC_CALIBRATION_OFFSET);
+    adc_calibration_number((uint32_t)(adc.ADCx), ADC_CALIBRATION_NUM1);
+    adc_calibration_enable((uint32_t)(adc.ADCx));
 
 #ifdef USE_DMA_SPEC
     const dmaChannelSpec_t *dmaSpec = dmaGetChannelSpecByPeripheral(DMA_PERIPH_ADC, device, config->dmaopt[device]);

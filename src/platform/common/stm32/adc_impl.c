@@ -71,6 +71,12 @@ uint32_t adcChannelByTag(ioTag_t ioTag)
 #if PLATFORM_TRAIT_ADC_DEVICE
 adcDevice_e adcDeviceByInstance(const ADC_TypeDef *instance)
 {
+#if defined(ADC0)
+    if (instance == ADC0) {
+        return ADCDEV_0;
+    }
+#endif
+
     if (instance == ADC1) {
         return ADCDEV_1;
     }

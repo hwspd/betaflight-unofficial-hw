@@ -168,6 +168,61 @@ void hard_fault_handler_c(unsigned long *hardfault_args)
   }
 }
 
+#elif defined(GD32H7)
+
+/* GD32H7 fault frame capture: the HardFault handler writes CFSR/HFSR/BFAR/
+ * MMFAR/stacked-PC/LR/SP to faultCaptureBuf, then tail-branches to
+ * systemFaultAction. The configurable-fault handlers (MemManage/BusFault/
+ * UsageFault) are defined in gd32h7xx_it.c; since SHCSR does not enable them,
+ * all faults escalate to HardFault and are captured here.
+ *
+ * Buffer layout (read via SWD after halting):
+ *   [0] = 1 (HardFault flag)
+ *   [1] = CFSR
+ *   [2] = HFSR
+ *   [3] = BFAR
+ *   [4] = MMFAR
+ *   [5] = stacked PC (faulting instruction)
+ *   [6] = stacked LR (caller)
+ *   [7] = faulting SP
+ */
+volatile uint32_t faultCaptureBuf[8] __attribute__((used));
+
+__attribute__((naked, used)) void HardFault_Handler(void)
+{
+    __asm__ volatile (
+        "ldr   r2, =faultCaptureBuf \n"
+        "movs  r3, #1               \n"
+        "str   r3, [r2, #0]         \n"
+        "ldr   r3, =0xE000ED28      \n"
+        "ldr   r3, [r3]             \n"
+        "str   r3, [r2, #4]         \n"
+        "ldr   r3, =0xE000ED2C      \n"
+        "ldr   r3, [r3]             \n"
+        "str   r3, [r2, #8]         \n"
+        "ldr   r3, =0xE000ED38      \n"
+        "ldr   r3, [r3]             \n"
+        "str   r3, [r2, #12]        \n"
+        "ldr   r3, =0xE000ED34      \n"
+        "ldr   r3, [r3]             \n"
+        "str   r3, [r2, #16]        \n"
+        "tst   lr, #4               \n"
+        "ite   eq                   \n"
+        "mrseq r0, msp              \n"
+        "mrsne r0, psp              \n"
+        "ldr   r3, [r0, #24]        \n"
+        "str   r3, [r2, #20]        \n"
+        "ldr   r3, [r0, #20]        \n"
+        "str   r3, [r2, #24]        \n"
+        "str   r0, [r2, #28]        \n"
+        "dsb                        \n"
+        "isb                        \n"
+        "b     systemFaultAction    \n"
+        ".ltorg                     \n"
+        ::: "r0", "r2", "r3", "memory"
+    );
+}
+
 #else
 
 __attribute__((naked, used)) void HardFault_Handler(void)
