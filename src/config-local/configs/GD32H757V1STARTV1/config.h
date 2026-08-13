@@ -22,8 +22,7 @@
 #define USE_ACC_SPI_MPU6000
 #define USE_ACC_SPI_ICM42688P
 #define USE_BARO
-#define USE_BARO_DPS310
-#define USE_BARO_SPA06_003
+#define USE_BARO_GDY112X
 #define USE_MAG
 #define USE_MAG_QMC5883P
 #define USE_FLASH

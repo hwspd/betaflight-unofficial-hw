@@ -335,6 +335,7 @@ COMMON_SRC += \
             drivers/barometer/barometer_bmp388.c \
             drivers/barometer/barometer_bmp5xx.c \
             drivers/barometer/barometer_dps310.c \
+            drivers/barometer/barometer_gdy112x.c \
             drivers/barometer/barometer_lps22df.c \
             drivers/barometer/barometer_lps.c \
             drivers/barometer/barometer_ms5611.c \
