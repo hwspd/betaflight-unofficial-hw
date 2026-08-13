@@ -79,9 +79,9 @@ jobs:
         shell: bash
         run: |
           set -euo pipefail
-          build_date="$(date -u +%Y%m%d)"
+          build_stamp="$(date -u +%Y%m%d-%H%M%S)"
           short_sha="${GITHUB_SHA::7}"
-          tag="dev-${build_date}-${short_sha}"
+          tag="dev-${build_stamp}-${short_sha}"
 
           cat > release-assets/RELEASE_NOTES.md <<EOF
           # ${tag}
@@ -111,7 +111,7 @@ jobs:
           EOF
 
           echo "tag=${tag}" >> "$GITHUB_OUTPUT"
-          echo "title=Dev release ${build_date} ${short_sha}" >> "$GITHUB_OUTPUT"
+          echo "title=Dev release ${build_stamp} UTC ${short_sha}" >> "$GITHUB_OUTPUT"
 
       - name: Replace existing prerelease for this commit
         env:
