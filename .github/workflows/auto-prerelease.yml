@@ -19,7 +19,8 @@ jobs:
     runs-on: ubuntu-latest
     if: ${{ github.event_name == 'workflow_dispatch' || github.ref_name == github.event.repository.default_branch }}
     env:
-      TARGETS: GD32F460RG GD32H757VI
+      TARGETS: GD32F460RG
+      CONFIGS: GD32H757V1STARTV1
     steps:
       - name: Checkout code
         uses: actions/checkout@v5
@@ -62,11 +63,16 @@ jobs:
         run: |
           set -euo pipefail
           mkdir -p release-assets
-          rm -f obj/betaflight_*_GD32F460RG.hex obj/betaflight_*_GD32H757VI.hex
+          rm -f obj/betaflight_*_GD32F460RG.hex obj/betaflight_*_GD32H757V1STARTV1.hex
 
           for target in $TARGETS; do
             make EXTRA_FLAGS=-Werror "$target" 2>&1 | tee "release-assets/${target}.log"
             cp obj/betaflight_*_"${target}".hex release-assets/
+          done
+
+          for config in $CONFIGS; do
+            make CONFIG_DIR=src/config-local CONFIG="$config" EXTRA_FLAGS=-Werror 2>&1 | tee "release-assets/${config}.log"
+            cp obj/betaflight_*_"${config}".hex release-assets/
           done
 
           (
@@ -94,7 +100,7 @@ jobs:
           ## Included targets
 
           - GD32F460RG
-          - GD32H757VI
+          - GD32H757V1STARTV1
 
           ## Validation
 
@@ -104,9 +110,9 @@ jobs:
           ## Assets
 
           - betaflight_*_GD32F460RG.hex
-          - betaflight_*_GD32H757VI.hex
+          - betaflight_*_GD32H757V1STARTV1.hex
           - GD32F460RG.log
-          - GD32H757VI.log
+          - GD32H757V1STARTV1.log
           - SHA256SUMS
           EOF
 
