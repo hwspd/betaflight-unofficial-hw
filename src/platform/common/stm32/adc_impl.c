@@ -44,8 +44,10 @@ bool adcVerifyPin(ioTag_t tag, adcDevice_e device)
         return false;
     }
 
-    /* Defensive guard: prevent negative/out-of-range device values causing undefined shifts */
-    if (device < ADCDEV_1 || device >= ADCDEV_COUNT) {
+    /* Defensive guard: prevent negative/out-of-range device values causing undefined shifts.
+     * The lower bound is 0 (ADCINVALID is -1); ADCDEV_0 is a valid device on 0-based
+     * platforms (USE_ADC_DEVICE_0), so it must not be rejected. */
+    if (device < 0 || device >= ADCDEV_COUNT) {
         return false;
     }
 
