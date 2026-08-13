@@ -529,7 +529,9 @@ FAST_IRQ_HANDLER void spiIrqHandler(const extDevice_t *dev)
     busDevice_t *bus = dev->bus;
     busSegment_t *nextSegment;
 
-    // A BUS_BUSY callback can rewind curSegment before the CS decision below.
+    // Captured before the callback, which rewinds curSegment to repeat a segment on BUS_BUSY. When
+    // the repeated segment is the first of the list that leaves curSegment pointing in front of the
+    // array, so negateCS can no longer be read from it once the callback has run.
     const bool negateCS = bus->curSegment->negateCS;
 
     if (bus->curSegment->callback) {
