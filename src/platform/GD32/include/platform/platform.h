@@ -38,6 +38,12 @@
 
 #endif
 
+/* The GD32 SDK headers define BIT(x); undefine it so the shared Betaflight
+ * BIT() macro in common/utils.h can be used without a redefinition warning. */
+#ifdef BIT
+#undef BIT
+#endif
+
 #ifdef GD32F4
 
 #define SPI_TRAIT_AF_PORT         1
