@@ -1015,6 +1015,53 @@ const spiHardware_t spiHardware[] = {
         .rcc = RCC_APB2(SPI3),
     },
 #endif
+#ifdef GD32F4
+    {
+        .device = SPIDEV_0,
+        .reg = (spiResource_t *)SPI0,
+        .sckPins = {
+            { DEFIO_TAG_E(PA5) },
+        },
+        .misoPins = {
+            { DEFIO_TAG_E(PA6) },
+        },
+        .mosiPins = {
+            { DEFIO_TAG_E(PA7) },
+        },
+        .af = GPIO_AF_5,
+        .rcc = RCC_APB2(SPI0),
+    },
+    {
+        .device = SPIDEV_1,
+        .reg = (spiResource_t *)SPI1,
+        .sckPins = {
+            { DEFIO_TAG_E(PB13) },
+        },
+        .misoPins = {
+            { DEFIO_TAG_E(PB14) },
+        },
+        .mosiPins = {
+            { DEFIO_TAG_E(PB15) },
+        },
+        .af = GPIO_AF_5,
+        .rcc = RCC_APB1(SPI1),
+    },
+    {
+        .device = SPIDEV_2,
+        .reg = (spiResource_t *)SPI2,
+        .sckPins = {
+            { DEFIO_TAG_E(PC10) },
+        },
+        .misoPins = {
+            { DEFIO_TAG_E(PC11) },
+        },
+        .mosiPins = {
+            { DEFIO_TAG_E(PB5) },
+        },
+        .af = GPIO_AF_6,
+        .rcc = RCC_APB1(SPI2),
+    },
+#endif
 
 };
 
