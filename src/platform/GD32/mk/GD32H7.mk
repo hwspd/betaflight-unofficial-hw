@@ -93,7 +93,8 @@ VPATH        := $(VPATH):$(CMSIS_DIR)/Core/Include:$(LIB_MODULES_DIR)/GD32H7/Fir
 
 CMSIS_SRC    :=
 
-INCLUDE_DIRS += \
+INCLUDE_DIRS := \
+            $(INCLUDE_DIRS) \
             $(TARGET_PLATFORM_DIR) \
             $(TARGET_PLATFORM_DIR)/include \
             $(TARGET_PLATFORM_DIR)/startup \
@@ -134,15 +135,12 @@ ifneq ($(FIRMWARE_SIZE),)
 DEVICE_FLAGS   += -DFIRMWARE_SIZE=$(FIRMWARE_SIZE)
 endif
 
-ifneq ($(HSE_VALUE),)
-DEVICE_FLAGS   += -DHSE_VALUE=$(HSE_VALUE) -DHXTAL_VALUE=$(HSE_VALUE)
-endif
+DEVICE_FLAGS    += -DHXTAL_VALUE=$(HSE_VALUE)
 
 DSP_LIB := $(LIB_MODULES_DIR)/CMSIS/DSP
 DEVICE_FLAGS += -DARM_MATH_MATRIX_CHECK -DARM_MATH_ROUNDING -D__FPU_PRESENT=1 -DUNALIGNED_SUPPORT_DISABLE -DARM_MATH_CM7
 DEVICE_FLAGS += -DUSE_GDBSP_DRIVER -DUSE_USBHS0
 DEVICE_FLAGS += -DUSE_USB_FS -DUSE_IRC48M
-DEVICE_FLAGS += -Wno-sign-compare
 # DEVICE_FLAGS += -DUSE_USB_HS
 # DEVICE_FLAGS += -DVECT_TAB_SRAM
 
@@ -243,4 +241,5 @@ SIZE_OPTIMISED_SRC += \
             common/stm32/bus_i2c_pinconfig.c \
             common/stm32/bus_spi_pinconfig.c \
             common/stm32/config_flash.c \
-            common/stm32/pwm_output_beeper.c
+            common/stm32/pwm_output_beeper.c \
+            common/stm32/bus_spi_pinconfig.c

@@ -44,10 +44,12 @@ bool adcVerifyPin(ioTag_t tag, adcDevice_e device)
         return false;
     }
 
-    /* Defensive guard: prevent negative/out-of-range device values causing undefined shifts.
-     * The lower bound is 0 (ADCINVALID is -1); ADCDEV_0 is a valid device on 0-based
-     * platforms (USE_ADC_DEVICE_0), so it must not be rejected. */
-    if (device < 0 || device >= ADCDEV_COUNT) {
+    /* Defensive guard: prevent negative/out-of-range device values causing undefined shifts */
+#if defined(USE_ADC_DEVICE_0)
+    if (device < ADCDEV_0 || device >= ADCDEV_COUNT) {
+#else
+    if (device < ADCDEV_1 || device >= ADCDEV_COUNT) {
+#endif
         return false;
     }
 
@@ -73,7 +75,7 @@ uint32_t adcChannelByTag(ioTag_t ioTag)
 #if PLATFORM_TRAIT_ADC_DEVICE
 adcDevice_e adcDeviceByInstance(const ADC_TypeDef *instance)
 {
-#if defined(ADC0)
+#if defined(USE_ADC_DEVICE_0) && !defined(X32M7)
     if (instance == ADC0) {
         return ADCDEV_0;
     }
@@ -147,6 +149,9 @@ void platform_pgResetFn_adcConfig(adcConfig_t *config)
 {
     config->device = ADC_DEV_TO_CFG(adcDeviceByInstance(ADC_INSTANCE));
 #if defined(USE_DMA_SPEC)
+#if defined(USE_ADC_DEVICE_0) && !defined(X32M7)
+    config->dmaopt[ADCDEV_0] = ADC0_DMA_OPT;
+#endif
     config->dmaopt[ADCDEV_1] = ADC1_DMA_OPT;
 // These conditionals need to match the ones used in 'src/main/drivers/adc.h'.
 #if defined(ADC2)

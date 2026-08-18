@@ -78,7 +78,6 @@
 #define USE_I2C
 #define I2C_FULL_RECONFIGURABILITY
 
-#define USE_DSHOT_BITBANG
 #define USE_DSHOT_BITBAND
 
 #define USE_BEEPER
@@ -126,3 +125,5 @@
 #if !defined(ADC0_DMA_OPT)
 #define ADC0_DMA_OPT (DMA_OPT_UNUSED)
 #endif
+
+

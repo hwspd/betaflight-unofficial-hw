@@ -23,11 +23,7 @@
 
 #if defined(GD32F460)
 
-#include "common/utils.h"
 #include "gd32f4xx.h"
-
-#undef BIT
-#define BIT(x) (1U << (x))
 
 // Chip Unique ID on F4xx
 #define U_ID_0 (*(uint32_t*)0x1fff7a10)
@@ -39,11 +35,7 @@
 #endif
 
 #elif defined(GD32H737) || defined(GD32H757) || defined(GD32H759)
-#include "common/utils.h"
 #include "gd32h7xx.h"
-
-#undef BIT
-#define BIT(x) (1U << (x))
 
 // Chip Unique ID on H7xx
 #define U_ID_0 (*(uint32_t*)0x1ff0f7e8)
@@ -56,6 +48,12 @@
 
 #define MAX_MPU_REGIONS    16
 
+#endif
+
+/* The GD32 SDK headers define BIT(x); undefine it so the shared Betaflight
+ * BIT() macro in common/utils.h can be used without a redefinition warning. */
+#ifdef BIT
+#undef BIT
 #endif
 
 #ifdef GD32F4

@@ -19,7 +19,7 @@ STDPERIPH_SRC   = \
             gd32f4xx_gpio.c \
             gd32f4xx_i2c.c \
             gd32f4xx_ipa.c \
-            gd32f4xx_misc.c \
+            gd32f4xx_misc.c\
             gd32f4xx_pmu.c \
             gd32f4xx_rcu.c \
             gd32f4xx_rtc.c \
@@ -232,4 +232,5 @@ SIZE_OPTIMISED_SRC += \
             common/stm32/bus_i2c_pinconfig.c \
             common/stm32/bus_spi_pinconfig.c \
             common/stm32/config_flash.c \
-            common/stm32/pwm_output_beeper.c
+            common/stm32/pwm_output_beeper.c \
+            common/stm32/bus_spi_pinconfig.c

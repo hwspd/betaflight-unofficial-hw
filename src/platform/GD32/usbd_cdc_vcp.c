@@ -59,6 +59,8 @@ static uint8_t APP_Tx_Buffer[APP_TX_DATA_SIZE];
 static uint32_t APP_Tx_ptr_out = 0;
 static uint32_t APP_Tx_ptr_in = 0;
 
+#define CDC_SEND_TIMEOUT_MS 2
+
 static uint16_t VCP_Init(void);
 static uint16_t VCP_DeInit(void);
 static uint16_t VCP_Ctrl(uint32_t Cmd, uint8_t* Buf, uint32_t Len);
@@ -180,7 +182,8 @@ static uint16_t VCP_Ctrl(uint32_t Cmd, uint8_t* Buf, uint32_t Len)
 */
 uint32_t CDC_Send_DATA(const uint8_t *ptrBuffer, uint32_t sendLength)
 {
-    return VCP_DataTx(ptrBuffer, sendLength);
+    VCP_DataTx(ptrBuffer, sendLength);
+    return sendLength;
 }
 
 uint32_t CDC_Send_FreeBytes(void)
@@ -194,8 +197,7 @@ uint32_t CDC_Send_FreeBytes(void)
     \param[in]  Buf: Buffer of data to be sent
     \param[in]  Len: Number of data to be sent (in bytes)
     \param[out] none
-    \retval     Number of bytes actually queued for transmission; less than Len on
-                backpressure timeout.
+    \retval     Result of the operation: USBD_OK if all operations are OK else VCP_FAIL
 */
 static uint16_t VCP_DataTx(const uint8_t* Buf, uint32_t Len)
 {
@@ -204,21 +206,22 @@ static uint16_t VCP_DataTx(const uint8_t* Buf, uint32_t Len)
         could just check for: USB_CDC_ZLP, but better to be safe
         and wait for any existing transmission to complete.
 
-        Bounded to 2ms: host may not be polling the IN endpoint yet at connect.
+        Bounded to 2ms: host may not be polling the IN endpoint yet (e.g. at connect).
+        Subtraction form avoids millis() wraparound false-triggering the deadline.
     */
     uint32_t start = millis();
     while (USB_Tx_State != 0) {
-        if (millis() - start > 2) {
+        if (millis() - start > CDC_SEND_TIMEOUT_MS) {
             return 0;
         }
     }
 
     uint32_t i;
     for (i = 0; i < Len; i++) {
-        // Bounded per byte; return partial count on timeout.
+        // Bounded to 2ms per byte; return partial count on timeout.
         start = millis();
         while (((APP_Rx_ptr_in + 1) % APP_RX_DATA_SIZE) == APP_Rx_ptr_out) {
-            if (millis() - start > 2) {
+            if (millis() - start > CDC_SEND_TIMEOUT_MS) {
                 return i;
             }
         }

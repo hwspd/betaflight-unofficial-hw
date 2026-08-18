@@ -230,7 +230,7 @@ void usbVcpInit(void)
 
 #if defined (GD32H7)
         usb_bsp_para_init();
-        usbd_init(&USB_OTG_dev, &bf_cdc_hid_desc, &bf_usbd_cdc_hid_cb);
+        usbd_init(&USB_OTG_dev, &bf_cdc_hid_desc, &bf_cdc_class);
 #else /* GD32H7 */
         usbd_init(&USB_OTG_dev, USB_CORE_ENUM_FS, &bf_cdc_hid_desc, &bf_usbd_cdc_hid_cb);
 #endif /* GD32H7 */
@@ -276,9 +276,6 @@ uint8_t usbVcpIsConnected(void)
 
 uint8_t usbVcpIsActive(void)
 {
-    // Unplugging stops the SOFs, which suspends the device out of CONFIGURED.
-    // usbIsConnected() alone cannot see this: without VBUS sensing there is no
-    // disconnect interrupt, so the state never returns to UNCONNECTED.
     return usbIsConnected() && usbIsConfigured();
 }
 #endif

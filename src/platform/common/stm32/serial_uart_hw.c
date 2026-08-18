@@ -195,7 +195,7 @@ uartPort_t *serialUART(uartDevice_t *uartdev, uint32_t baudRate, portMode_e mode
                 uartTxMonitor(s);
 #endif
             } else {
-#if defined(STM32F4) || defined(APM32F4) || defined(GD32F4)
+#if defined(STM32F4) || defined(APM32F4)
                 // TODO: no need for pullup on TX only pin
                 const ioConfig_t ioCfg = IOCFG_AF_PP_UP;
 #else

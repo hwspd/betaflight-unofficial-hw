@@ -42,6 +42,7 @@
 #include "drivers/serial_uart.h"
 #include "drivers/serial_uart_impl.h"
 
+
 #ifndef UART0_TX_DMA_CH_BASE
 #define UART0_TX_DMA_CH_BASE NULL
 #endif

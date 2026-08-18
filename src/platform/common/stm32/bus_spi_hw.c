@@ -59,7 +59,7 @@ FAST_IRQ_HANDLER static void spiRxIrqHandler(dmaChannelDescriptor_t* descriptor)
     spiInternalStopDMA(dev);
 
 #ifdef __DCACHE_PRESENT
-#ifdef STM32H7
+#if defined(STM32H7) || defined(GD32H7)
     if (bus->curSegment->u.buffers.rxData &&
         ((bus->curSegment->u.buffers.rxData < &_dmaram_start__) || (bus->curSegment->u.buffers.rxData >= &_dmaram_end__))) {
 #else
@@ -114,13 +114,13 @@ uint16_t spiCalculateDivider(uint32_t freq)
 
     uint32_t spiClk = system_core_clock / 2;
 #elif defined(GD32F4)
-    if (freq > 30000000) {
+    if(freq > 30000000){
         freq = 30000000;
     }
 
     uint32_t spiClk = SystemCoreClock / 2;
 #elif defined(GD32H7)
-    if (freq > 100000000) {
+    if(freq > 100000000){
         freq = 100000000;
     }
 
@@ -153,13 +153,13 @@ uint32_t spiCalculateClock(uint16_t spiClkDivisor)
 #elif defined(GD32F4)
     uint32_t spiClk = SystemCoreClock / 2;
 
-    if ((spiClk / spiClkDivisor) > 30000000) {
+    if ((spiClk / spiClkDivisor) > 30000000){
         return 30000000;
     }
 #elif defined(GD32H7)
     uint32_t spiClk = SystemCoreClock / 4;
 
-    if ((spiClk / spiClkDivisor) > 100000000) {
+    if ((spiClk / spiClkDivisor) > 100000000){
         return 100000000;
     }
 #else

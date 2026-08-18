@@ -25,11 +25,11 @@
 
 /* This file refers the CMSIS standard, some adjustments are made according to GigaDevice chips */
 
-#include "common/utils.h"
-
 #include "gd32h7xx.h"
 
 #include "platform.h"
+
+#include "common/utils.h"
 
 #include "build/debug.h"
 
@@ -238,8 +238,8 @@ static void sram01_mem_sections_initialise(void)
     extern uint8_t _sdmaram_data;
     extern uint8_t _edmaram_data;
     extern uint8_t _sdmaram_idata;
-    bzero(&_sdmaram_bss, (size_t)((uintptr_t)&_edmaram_bss - (uintptr_t)&_sdmaram_bss));
-    memcpy(&_sdmaram_data, &_sdmaram_idata, (size_t)((uintptr_t)&_edmaram_data - (uintptr_t)&_sdmaram_data));
+    bzero(&_sdmaram_bss, (size_t) (&_edmaram_bss - &_sdmaram_bss));
+    memcpy(&_sdmaram_data, &_sdmaram_idata, (size_t) (&_edmaram_data - &_sdmaram_data));
 }
 
 

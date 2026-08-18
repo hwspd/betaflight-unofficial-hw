@@ -33,8 +33,6 @@
 extern "C" {
 #endif
 
-#include <stdint.h>
-
 #if !defined (GD32H7XX)
 #error "Please select the target GD32H7XX device used in your application (in gd32h7xx.h file)"
 #endif /* undefine GD32H7XX tip */
@@ -303,6 +301,7 @@ typedef enum IRQn {
 /* includes */
 #include "core_cm7.h"
 #include "system_gd32h7xx.h"
+#include <stdint.h>
 #include <stddef.h>
 #include <string.h>
 
@@ -316,9 +315,7 @@ typedef enum {ERROR = 0, SUCCESS = !ERROR} ErrStatus;
 #define REG32(addr)                  (*(volatile uint32_t *)(uint32_t)(addr))
 #define REG16(addr)                  (*(volatile uint16_t *)(uint32_t)(addr))
 #define REG8(addr)                   (*(volatile uint8_t *)(uint32_t)(addr))
-#ifndef BIT
-#define BIT(x)                       (1 << (x))
-#endif
+#define BIT(x)                       ((uint32_t)((uint32_t)0x01U << (x)))
 #define BITS(start, end)             ((0xFFFFFFFFUL << (start)) & (0xFFFFFFFFUL >> (31U - (uint32_t)(end))))
 #define GET_BITS(regval, start, end) (((regval) & BITS((start),(end))) >> (start))
 

@@ -329,53 +329,67 @@ uint32_t getFLASHSectorForEEPROM(void)
     }
 }
 #elif defined(GD32F4)
-static uint32_t getFLASHSectorForEEPROM(void)
-{
-    if ((uint32_t)&__config_start <= 0x08003FFF) {
-        return CTL_SECTOR_NUMBER_0;
-    }
-    if ((uint32_t)&__config_start <= 0x08007FFF) {
-        return CTL_SECTOR_NUMBER_1;
-    }
-    if ((uint32_t)&__config_start <= 0x0800BFFF) {
-        return CTL_SECTOR_NUMBER_2;
-    }
-    if ((uint32_t)&__config_start <= 0x0800FFFF) {
-        return CTL_SECTOR_NUMBER_3;
-    }
-    if ((uint32_t)&__config_start <= 0x0801FFFF) {
-        return CTL_SECTOR_NUMBER_4;
-    }
-    if ((uint32_t)&__config_start <= 0x0803FFFF) {
-        return CTL_SECTOR_NUMBER_5;
-    }
-    if ((uint32_t)&__config_start <= 0x0805FFFF) {
-        return CTL_SECTOR_NUMBER_6;
-    }
-    if ((uint32_t)&__config_start <= 0x0807FFFF) {
-        return CTL_SECTOR_NUMBER_7;
-    }
-    if ((uint32_t)&__config_start <= 0x0809FFFF) {
-        return CTL_SECTOR_NUMBER_8;
-    }
-    if ((uint32_t)&__config_start <= 0x080BFFFF) {
-        return CTL_SECTOR_NUMBER_9;
-    }
-    if ((uint32_t)&__config_start <= 0x080DFFFF) {
-        return CTL_SECTOR_NUMBER_10;
-    }
-    if ((uint32_t)&__config_start <= 0x080FFFFF) {
-        return CTL_SECTOR_NUMBER_11;
-    }
+/*
+Sector 0    0x08000000 - 0x08003FFF 16 Kbytes
+Sector 1    0x08004000 - 0x08007FFF 16 Kbytes
+Sector 2    0x08008000 - 0x0800BFFF 16 Kbytes
+Sector 3    0x0800C000 - 0x0800FFFF 16 Kbytes
+Sector 4    0x08010000 - 0x0801FFFF 64 Kbytes
+Sector 5    0x08020000 - 0x0803FFFF 128 Kbytes
+Sector 6    0x08040000 - 0x0805FFFF 128 Kbytes
+Sector 7    0x08060000 - 0x0807FFFF 128 Kbytes
+Sector 8    0x08080000 - 0x0809FFFF 128 Kbytes
+Sector 9    0x080A0000 - 0x080BFFFF 128 Kbytes
+Sector 10   0x080C0000 - 0x080DFFFF 128 Kbytes
+Sector 11   0x080E0000 - 0x080FFFFF 128 Kbytes
+*/
 
+uint32_t getFLASHSectorForEEPROM(void)
+{
+    if ((uint32_t)&__config_start <= 0x08003FFF)
+        return CTL_SECTOR_NUMBER_0;
+    if ((uint32_t)&__config_start <= 0x08007FFF)
+        return CTL_SECTOR_NUMBER_1;
+    if ((uint32_t)&__config_start <= 0x0800BFFF)
+        return CTL_SECTOR_NUMBER_2;
+    if ((uint32_t)&__config_start <= 0x0800FFFF)
+        return CTL_SECTOR_NUMBER_3;
+    if ((uint32_t)&__config_start <= 0x0801FFFF)
+        return CTL_SECTOR_NUMBER_4;
+    if ((uint32_t)&__config_start <= 0x0803FFFF)
+        return CTL_SECTOR_NUMBER_5;
+    if ((uint32_t)&__config_start <= 0x0805FFFF)
+        return CTL_SECTOR_NUMBER_6;
+    if ((uint32_t)&__config_start <= 0x0807FFFF)
+        return CTL_SECTOR_NUMBER_7;
+    if ((uint32_t)&__config_start <= 0x0809FFFF)
+        return CTL_SECTOR_NUMBER_8;
+    if ((uint32_t)&__config_start <= 0x080DFFFF)
+        return CTL_SECTOR_NUMBER_9;
+    if ((uint32_t)&__config_start <= 0x080BFFFF)
+        return CTL_SECTOR_NUMBER_10;
+    if ((uint32_t)&__config_start <= 0x080FFFFF)
+        return CTL_SECTOR_NUMBER_11;
+
+    // Not good
     while (1) {
         failureMode(FAILURE_CONFIG_STORE_FAILURE);
     }
 }
 #elif defined(GD32H7)
-static void gd32h7ValidateConfigFlashAddress(void)
+/*
+Sector 0     0x08000000 - 0x08000FFF 4 Kbytes
+Sector 1     0x08001000 - 0x08001FFF 4 Kbytes
+Sector 2     0x08002000 - 0x08002FFF 4 Kbytes
+...
+Sector 511   0x081FE000 - 0x081FEFFF 4 Kbytes
+Sector 512   0x081FF000 - 0x081FFFFF 4 Kbytes
+*/
+
+void getFLASHSectorForEEPROM(void)
 {
     if ((uint32_t)&__config_start > 0x081FE000) {
+        // Not good
         while (1) {
             failureMode(FAILURE_CONFIG_STORE_FAILURE);
         }
@@ -682,8 +696,8 @@ configStreamerResult_e configWriteWord(uintptr_t address, config_streamer_buffer
     }
 #elif defined(GD32F4)
     if (address % FLASH_PAGE_SIZE == 0) {
-        const fmc_state_enum eraseStatus = fmc_sector_erase(getFLASHSectorForEEPROM());
-        if (eraseStatus != FMC_READY) {
+        const fmc_state_enum status = fmc_sector_erase(getFLASHSectorForEEPROM());
+        if (status != FMC_READY) {
             return CONFIG_RESULT_FAILURE;
         }
     }
@@ -695,9 +709,9 @@ configStreamerResult_e configWriteWord(uintptr_t address, config_streamer_buffer
     }
 #elif defined(GD32H7)
     if (address % FLASH_PAGE_SIZE == 0) {
-        gd32h7ValidateConfigFlashAddress();
-        const fmc_state_enum eraseStatus = fmc_sector_erase(address);
-        if (eraseStatus != FMC_READY) {
+        getFLASHSectorForEEPROM();
+        const fmc_state_enum status = fmc_sector_erase(address);
+        if (status != FMC_READY) {
             return CONFIG_RESULT_FAILURE;
         }
     }

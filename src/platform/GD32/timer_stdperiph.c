@@ -773,7 +773,7 @@ _TIM_IRQ_HANDLER(TIMER5_DAC_IRQHandler, 5);
 #endif
 
 #if USED_TIMERS & TIM_N(6)
-#  if !(defined(USE_VCP) && (defined(GD32F4) || defined(GD32F7)))
+#  if !(defined(USE_VCP) && (defined(GD32F4) || defined(GD32H7)))
 _TIM_IRQ_HANDLER_UPDATE_ONLY(TIMER6_IRQHandler, 6);
 #  endif
 #endif
