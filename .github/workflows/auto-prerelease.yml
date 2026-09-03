@@ -20,7 +20,7 @@ jobs:
     if: ${{ github.event_name == 'workflow_dispatch' || github.ref_name == github.event.repository.default_branch }}
     env:
       TARGETS: GD32F460RG
-      CONFIGS: GD32H757V1STARTV1
+      CONFIGS: HAKRCF460V2 GD32H757V1STARTV1
     steps:
       - name: Checkout code
         uses: actions/checkout@v5
@@ -63,7 +63,7 @@ jobs:
         run: |
           set -euo pipefail
           mkdir -p release-assets
-          rm -f obj/betaflight_*_GD32F460RG.hex obj/betaflight_*_GD32H757V1STARTV1.hex
+          rm -f obj/betaflight_*_GD32F460RG.hex obj/betaflight_*_HAKRCF460V2.hex obj/betaflight_*_GD32H757V1STARTV1.hex
 
           for target in $TARGETS; do
             make EXTRA_FLAGS=-Werror "$target" 2>&1 | tee "release-assets/${target}.log"
@@ -100,18 +100,22 @@ jobs:
           ## Included targets
 
           - GD32F460RG
+          - HAKRCF460V2
           - GD32H757V1STARTV1
 
           ## Validation
 
-          - Build completed in GitHub Actions for both included targets.
-          - Hardware-in-the-loop and runtime validation are not included in this automated prerelease.
+          - Build completed in GitHub Actions for all included targets.
+          - HAKRCF460V2 manually validated for SWD flash, boot, USB/CLI, ICM42688P, DPS310, and W25Q128 detection.
+          - Motor outputs, DShot, analog OSD, storage writes, arming, and flight behavior remain untested.
 
           ## Assets
 
           - betaflight_*_GD32F460RG.hex
+          - betaflight_*_HAKRCF460V2.hex
           - betaflight_*_GD32H757V1STARTV1.hex
           - GD32F460RG.log
+          - HAKRCF460V2.log
           - GD32H757V1STARTV1.log
           - SHA256SUMS
           EOF
