@@ -95,8 +95,9 @@
     TIMER_PIN_MAP(7, SERVO2_PIN,    1, -1) \
     TIMER_PIN_MAP(8, LED_STRIP_PIN, 2,  0)
 
-#define ADC_INSTANCE        ADC1
-#define ADC1_DMA_OPT        0
+// ADC1 routes overlap TIMER7 motor DMA; reserve DMA1 channel 1 for ADC2.
+#define ADC_INSTANCE        ADC2
+#define ADC2_DMA_OPT        1
 #define BEEPER_INVERTED
 #define MAG_I2C_INSTANCE     I2CDEV_0
 #define BARO_I2C_INSTANCE    I2CDEV_0

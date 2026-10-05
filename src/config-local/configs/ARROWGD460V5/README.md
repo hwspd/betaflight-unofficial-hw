@@ -40,7 +40,29 @@ UART3 is intentionally RX-only: PA0 is the LED strip pin. The supplied ESC senso
 
 Sensor selections retained from the supplied config: ICM42688P, LSM6DSV16X, LSM6DSK320X and BMI270; gyro alignment CW90_DEG. Flash uses the M25P16-family driver. These definitions are not proof of the actually populated devices.
 
-ADC1 and DMA option 0 are retained from the supplied config; unlike the pin-selected UART/SPI/I2C bus translations, ADC1 is a valid selectable ADC for all three inputs in the GD32 driver. Inputs: PC0 voltage, PC1 current, PC2 RSSI. Voltage scale 210 and current scale 100 require hardware calibration.
+External ADC uses **ADC2, DMA option 1**, selecting GD32 DMA1 channel 1 (CLI DMA2 channel 1). Inputs remain PC0 voltage, PC1 current and PC2 RSSI, all supported on ADC2 by the GD32 driver. Voltage scale 210 and current scale 100 require hardware calibration.
+
+This deliberately differs from the supplied ADC1/option-0 configuration: ADC1 option 0 conflicts with Motor 4 on DMA1 channel 2, and ADC1 option 1 conflicts with Motor 3 on DMA1 channel 3. ADC2 option 0 would instead compete with flash RX DMA; option 1 avoids these allocations. Existing saved settings must also select ADC2 option 1 (or be reset to the corrected board defaults); flashing alone preserves old ADC settings.
+
+### DMA budget for per-channel DShot
+
+Controller/channel numbers here are GD32's zero-based names; CLI DMA controller labels are one higher.
+
+| Function | Timer/peripheral | DMA controller / channel |
+|---|---|---|
+| Motor 1, PC9 | TIMER7 CH3 | DMA1 / 7 |
+| Motor 2, PC8 | TIMER7 CH2 | DMA1 / 4 |
+| Motor 3, PC7 | TIMER7 CH1 | DMA1 / 3 |
+| Motor 4, PC6 | TIMER7 CH0 | DMA1 / 2 |
+| Motor 5, PB11 | TIMER1 CH3 | DMA0 / 7 |
+| Motor 6, PB10 | TIMER1 CH2 | DMA0 / 1 |
+| LED strip, PA0 | TIMER4 CH0 | DMA0 / 2 |
+| External ADC | ADC2, option 1 | DMA1 / 1 |
+| Flash TX / RX | SPI0, automatic allocation | DMA1 / 5, DMA1 / 0 |
+| OSD TX / RX | SPI1 | DMA0 / 4, DMA0 / 3 |
+| Gyro TX / RX | SPI2, automatic allocation | DMA0 / 5, DMA0 / 0 |
+
+These routes are statically conflict-free for the declared motors/LED/ADC/SPI set with burst and bitbang DShot OFF. **Do not enable burst DShot with this ADC route without remapping DMA:** TIMER7's update request also uses DMA1 channel 1. UART DMA, SDIO, remapped outputs or different DShot modes require a fresh audit. Flash TX relies on automatic allocation choosing option 1 because option 0 is occupied by Motor 3. Conventional servo PWM does not claim a DMA route in this budget. Use `dma show` and output/ADC/logging tests on the actual board to validate runtime behavior.
 
 ## Outputs and defaults
 
