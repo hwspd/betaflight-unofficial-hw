@@ -1438,6 +1438,7 @@ RAM_CODE static void cliSerial(const char *cmdName, char *cmdline)
             if (identifier >= SERIAL_PORT_LEGACY_START_IDENTIFIER && identifier < SERIAL_PORT_START_IDENTIFIER) {
                 identifier += SERIAL_PORT_UART1;
             }
+            identifier = serialPortIdentifierFromExternal(identifier);
        }
     }
 
@@ -1613,7 +1614,7 @@ RAM_CODE static void cliSerialPassthrough(const char *cmdName, char *cmdline)
             } else if ((portId = findSerialPortByName(tok, strcasecmp)) >= 0) {
                 // empty
             } else if ((portId = strtol(tok, &endptr, 10)) >= 0 && *endptr == '\0') {
-                // empty
+                portId = serialPortIdentifierFromExternal(portId);
             } else {
                 cliPrintLinef("Failed parsing port%d (%s)", portN + 1, tok);
                 return;

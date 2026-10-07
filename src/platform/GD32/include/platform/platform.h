@@ -21,6 +21,8 @@
 
 #pragma once
 
+#define USE_PLATFORM_SERIAL_MAPPING
+
 #if defined(GD32F460)
 
 #include "gd32f4xx.h"

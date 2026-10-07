@@ -24,6 +24,7 @@ extern "C" {
     #include "platform.h"
 
     #include "drivers/serial.h"
+    #include "drivers/serial_impl.h"
     #include "drivers/serial_softserial.h"
     #include "drivers/serial_uart.h"
 
@@ -53,6 +54,80 @@ TEST(IoSerialTest, TestFindPortConfig)
     // then
     EXPECT_EQ(NULL, portConfig);
 }
+
+TEST(IoSerialTest, ExternalUartNamesAndIdentifiersFollowPlatformPolicy)
+{
+    const serialPortIdentifier_e first = SERIAL_PORT_UART_FIRST;
+#if SERIAL_UART_FIRST_INDEX == 0 && !defined(USE_PLATFORM_SERIAL_MAPPING)
+    EXPECT_EQ(50, serialPortIdentifierToExternal(first));
+    EXPECT_STREQ("UART0", serialName(first, "unknown"));
+    EXPECT_EQ(first, findSerialPortByName("UART0", NULL));
+    EXPECT_EQ(first, serialPortIdentifierFromExternal(50));
+    const serialPortIdentifier_e second = (serialPortIdentifier_e)(first + 1);
+    EXPECT_EQ(51, serialPortIdentifierToExternal(second));
+    EXPECT_STREQ("UART1", serialName(second, "unknown"));
+    EXPECT_EQ(second, findSerialPortByName("uart1", NULL));
+    EXPECT_EQ(second, serialPortIdentifierFromExternal(51));
+#else
+    EXPECT_EQ(51, serialPortIdentifierToExternal(first));
+    EXPECT_STREQ("UART1", serialName(first, "unknown"));
+    EXPECT_EQ(first, findSerialPortByName("UART1", NULL));
+    EXPECT_EQ(SERIAL_PORT_NONE, findSerialPortByName("UART0", NULL));
+    EXPECT_EQ(first, serialPortIdentifierFromExternal(51));
+
+    const serialPortIdentifier_e second = (serialPortIdentifier_e)(first + 1);
+    EXPECT_EQ(52, serialPortIdentifierToExternal(second));
+    EXPECT_STREQ("UART2", serialName(second, "unknown"));
+    EXPECT_EQ(second, findSerialPortByName("uart2", NULL));
+    EXPECT_EQ(second, serialPortIdentifierFromExternal(52));
+#endif
+}
+
+TEST(IoSerialTest, ExternalIdentifierRoundTripPreservesEveryConfiguredPort)
+{
+    for (unsigned i = 0; i < SERIAL_PORT_COUNT; i++) {
+        const serialPortIdentifier_e internal = serialPortIdentifiers[i];
+        const int external = serialPortIdentifierToExternal(internal);
+        EXPECT_EQ(internal, serialPortIdentifierFromExternal(external));
+        EXPECT_EQ(internal, findSerialPortByName(serialName(internal, "unknown"), NULL));
+        EXPECT_GE(findSerialPortIndexByIdentifier(internal), 0);
+    }
+}
+
+TEST(IoSerialTest, NonUartIdentifiersDoNotChange)
+{
+    for (int identifier : {-1, 20, 30, 31, 40, 70, 79, 99}) {
+        EXPECT_EQ(identifier, serialPortIdentifierToExternal((serialPortIdentifier_e)identifier));
+        EXPECT_EQ(identifier, serialPortIdentifierFromExternal(identifier));
+    }
+}
+
+#if SERIAL_UART_FIRST_INDEX == 0
+TEST(IoSerialTest, ZeroBasedHardwareAndResourceSlotsRemainUnchanged)
+{
+    EXPECT_EQ(50, SERIAL_PORT_UART0);
+    EXPECT_EQ(0, serialResourceIndex(SERIAL_PORT_UART0));
+    EXPECT_EQ(1, serialOwnerIndex(SERIAL_PORT_UART0));
+#ifdef USE_PLATFORM_SERIAL_MAPPING
+    EXPECT_EQ(SERIAL_PORT_NONE, serialPortIdentifierFromExternal(50));
+    EXPECT_EQ(SERIAL_PORT_UART15, serialPortIdentifierFromExternal(66));
+    EXPECT_EQ(66, serialPortIdentifierToExternal(SERIAL_PORT_UART15));
+#else
+    EXPECT_EQ(SERIAL_PORT_UART0, serialPortIdentifierFromExternal(50));
+    EXPECT_EQ(SERIAL_PORT_UART15, serialPortIdentifierFromExternal(65));
+    EXPECT_EQ(65, serialPortIdentifierToExternal(SERIAL_PORT_UART15));
+#endif
+}
+#else
+TEST(IoSerialTest, OneBasedHardwareIdentifiersRemainUnchanged)
+{
+    EXPECT_EQ(51, SERIAL_PORT_UART1);
+    EXPECT_EQ(0, serialResourceIndex(SERIAL_PORT_UART1));
+    EXPECT_EQ(1, serialOwnerIndex(SERIAL_PORT_UART1));
+    EXPECT_EQ(SERIAL_PORT_UART15, serialPortIdentifierFromExternal(65));
+    EXPECT_EQ(65, serialPortIdentifierToExternal(SERIAL_PORT_UART15));
+}
+#endif
 
 
 struct ResetCalled {};

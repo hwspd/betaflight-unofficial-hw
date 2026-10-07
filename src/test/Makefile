@@ -257,6 +257,17 @@ io_serial_unittest_SRC := \
 		$(USER_DIR)/io/serial.c \
 		$(USER_DIR)/io/serial_resource.c
 
+io_serial_zero_based_unittest_SRC := $(io_serial_unittest_SRC)
+io_serial_zero_based_unittest_DEFINES := \
+		SERIAL_UART_FIRST_INDEX=0 \
+		USE_UART0=
+
+io_serial_gd32_unittest_SRC := $(io_serial_unittest_SRC)
+io_serial_gd32_unittest_DEFINES := \
+		$(io_serial_zero_based_unittest_DEFINES) \
+		USE_PLATFORM_SERIAL_MAPPING=
+io_serial_gd32_unittest_INCLUDE_DIRS := $(ROOT)/src/platform/GD32/include
+
 
 ledstrip_unittest_SRC := \
 		$(USER_DIR)/common/bitarray.c \

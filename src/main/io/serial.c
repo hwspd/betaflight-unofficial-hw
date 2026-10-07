@@ -53,6 +53,14 @@
 
 #include "io/serial.h"
 
+#ifdef USE_PLATFORM_SERIAL_MAPPING
+#include "platform/serial_mapping.h"
+#endif
+
+#ifndef SERIAL_UART_NAME
+#define SERIAL_UART_NAME(index) "UART" STR(index)
+#endif
+
 #include "msp/msp_serial.h"
 
 #include "pg/pg.h"
@@ -164,52 +172,52 @@ const char* serialPortNames[SERIAL_PORT_COUNT] = {
     "VCP",
 #endif
 #ifdef USE_UART0
-    "UART0",
+    SERIAL_UART_NAME(0),
 #endif
 #ifdef USE_UART1
-    "UART1",
+    SERIAL_UART_NAME(1),
 #endif
 #ifdef USE_UART2
-    "UART2",
+    SERIAL_UART_NAME(2),
 #endif
 #ifdef USE_UART3
-    "UART3",
+    SERIAL_UART_NAME(3),
 #endif
 #ifdef USE_UART4
-    "UART4",
+    SERIAL_UART_NAME(4),
 #endif
 #ifdef USE_UART5
-    "UART5",
+    SERIAL_UART_NAME(5),
 #endif
 #ifdef USE_UART6
-    "UART6",
+    SERIAL_UART_NAME(6),
 #endif
 #ifdef USE_UART7
-    "UART7",
+    SERIAL_UART_NAME(7),
 #endif
 #ifdef USE_UART8
-    "UART8",
+    SERIAL_UART_NAME(8),
 #endif
 #ifdef USE_UART9
-    "UART9",
+    SERIAL_UART_NAME(9),
 #endif
 #ifdef USE_UART10
-    "UART10",
+    SERIAL_UART_NAME(10),
 #endif
 #ifdef USE_UART11
-    "UART11",
+    SERIAL_UART_NAME(11),
 #endif
 #ifdef USE_UART12
-    "UART12",
+    SERIAL_UART_NAME(12),
 #endif
 #ifdef USE_UART13
-    "UART13",
+    SERIAL_UART_NAME(13),
 #endif
 #ifdef USE_UART14
-    "UART14",
+    SERIAL_UART_NAME(14),
 #endif
 #ifdef USE_UART15
-    "UART15",
+    SERIAL_UART_NAME(15),
 #endif
 #ifdef USE_SOFTSERIAL1
     "SOFT1",
@@ -416,6 +424,24 @@ const char* serialName(serialPortIdentifier_e identifier, const char* notFound)
 {
     const int idx = findSerialPortIndexByIdentifier(identifier);
     return idx >= 0 ? serialPortNames[idx] : notFound;
+}
+
+int serialPortIdentifierToExternal(serialPortIdentifier_e identifier)
+{
+#ifdef USE_PLATFORM_SERIAL_MAPPING
+    return platformSerialPortIdentifierToExternal(identifier);
+#else
+    return identifier;
+#endif
+}
+
+serialPortIdentifier_e serialPortIdentifierFromExternal(int identifier)
+{
+#ifdef USE_PLATFORM_SERIAL_MAPPING
+    return platformSerialPortIdentifierFromExternal(identifier);
+#else
+    return (serialPortIdentifier_e)identifier;
+#endif
 }
 
 serialPortUsage_t *findSerialPortUsageByIdentifier(serialPortIdentifier_e identifier)

@@ -269,7 +269,7 @@ RAM_CODE static serialPort_t *mspFindPassthroughSerialPort(void)
     switch (mspPassthroughMode) {
     case MSP_PASSTHROUGH_SERIAL_ID:
     {
-        portUsage = findSerialPortUsageByIdentifier(mspPassthroughArgument);
+        portUsage = findSerialPortUsageByIdentifier(serialPortIdentifierFromExternal(mspPassthroughArgument));
         break;
     }
     case MSP_PASSTHROUGH_SERIAL_FUNCTION_ID:
@@ -1773,7 +1773,7 @@ case MSP_NAME:
             if (!serialIsPortAvailable(serialConfig()->portConfigs[i].identifier)) {
                 continue;
             };
-            sbufWriteU8(dst, serialConfig()->portConfigs[i].identifier);
+            sbufWriteU8(dst, serialPortIdentifierToExternal(serialConfig()->portConfigs[i].identifier));
             sbufWriteU16(dst, serialConfig()->portConfigs[i].functionMask);
             sbufWriteU8(dst, serialConfig()->portConfigs[i].msp_baudrateIndex);
             sbufWriteU8(dst, serialConfig()->portConfigs[i].gps_baudrateIndex);
@@ -1794,7 +1794,7 @@ case MSP_NAME:
             if (!serialIsPortAvailable(serialConfig()->portConfigs[i].identifier)) {
                 continue;
             };
-            sbufWriteU8(dst, serialConfig()->portConfigs[i].identifier);
+            sbufWriteU8(dst, serialPortIdentifierToExternal(serialConfig()->portConfigs[i].identifier));
             sbufWriteU32(dst, serialConfig()->portConfigs[i].functionMask);
             sbufWriteU8(dst, serialConfig()->portConfigs[i].msp_baudrateIndex);
             sbufWriteU8(dst, serialConfig()->portConfigs[i].gps_baudrateIndex);
@@ -4254,7 +4254,7 @@ RAM_CODE static mspResult_e mspProcessInCommand(mspDescriptor_t srcDesc, int16_t
             uint8_t remainingPortsInPacket = dataSize / portConfigSize;
 
             while (remainingPortsInPacket--) {
-                uint8_t identifier = sbufReadU8(src);
+                const serialPortIdentifier_e identifier = serialPortIdentifierFromExternal(sbufReadU8(src));
 
                 serialPortConfig_t *portConfig = serialFindPortConfigurationMutable(identifier);
 
@@ -4285,7 +4285,7 @@ RAM_CODE static mspResult_e mspProcessInCommand(mspDescriptor_t srcDesc, int16_t
         }
         for (unsigned ii = 0; ii < count; ii++) {
             unsigned start = sbufBytesRemaining(src);
-            uint8_t identifier = sbufReadU8(src);
+            const serialPortIdentifier_e identifier = serialPortIdentifierFromExternal(sbufReadU8(src));
             serialPortConfig_t *portConfig = serialFindPortConfigurationMutable(identifier);
 
             if (!portConfig) {

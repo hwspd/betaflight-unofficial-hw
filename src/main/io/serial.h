@@ -207,6 +207,9 @@ serialPortUsage_t *findSerialPortUsageByIdentifier(serialPortIdentifier_e identi
 int findSerialPortIndexByIdentifier(serialPortIdentifier_e identifier);
 serialPortIdentifier_e findSerialPortByName(const char* portName, int (*cmp)(const char *portName, const char *candidate));
 const char* serialName(serialPortIdentifier_e identifier, const char* notFound);
+// Optional platform mapping at CLI/MSP boundaries; identity on other targets.
+int serialPortIdentifierToExternal(serialPortIdentifier_e identifier);
+serialPortIdentifier_e serialPortIdentifierFromExternal(int identifier);
 
 //
 // runtime
