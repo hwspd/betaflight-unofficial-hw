@@ -164,52 +164,52 @@ const char* serialPortNames[SERIAL_PORT_COUNT] = {
     "VCP",
 #endif
 #ifdef USE_UART0
-    "UART0",
-#endif
-#ifdef USE_UART1
     "UART1",
 #endif
+#ifdef USE_UART1
+    SERIAL_UART_FIRST_INDEX == 0 ? "UART2" : "UART1",
+#endif
 #ifdef USE_UART2
-    "UART2",
+    SERIAL_UART_FIRST_INDEX == 0 ? "UART3" : "UART2",
 #endif
 #ifdef USE_UART3
-    "UART3",
+    SERIAL_UART_FIRST_INDEX == 0 ? "UART4" : "UART3",
 #endif
 #ifdef USE_UART4
-    "UART4",
+    SERIAL_UART_FIRST_INDEX == 0 ? "UART5" : "UART4",
 #endif
 #ifdef USE_UART5
-    "UART5",
+    SERIAL_UART_FIRST_INDEX == 0 ? "UART6" : "UART5",
 #endif
 #ifdef USE_UART6
-    "UART6",
+    SERIAL_UART_FIRST_INDEX == 0 ? "UART7" : "UART6",
 #endif
 #ifdef USE_UART7
-    "UART7",
+    SERIAL_UART_FIRST_INDEX == 0 ? "UART8" : "UART7",
 #endif
 #ifdef USE_UART8
-    "UART8",
+    SERIAL_UART_FIRST_INDEX == 0 ? "UART9" : "UART8",
 #endif
 #ifdef USE_UART9
-    "UART9",
+    SERIAL_UART_FIRST_INDEX == 0 ? "UART10" : "UART9",
 #endif
 #ifdef USE_UART10
-    "UART10",
+    SERIAL_UART_FIRST_INDEX == 0 ? "UART11" : "UART10",
 #endif
 #ifdef USE_UART11
-    "UART11",
+    SERIAL_UART_FIRST_INDEX == 0 ? "UART12" : "UART11",
 #endif
 #ifdef USE_UART12
-    "UART12",
+    SERIAL_UART_FIRST_INDEX == 0 ? "UART13" : "UART12",
 #endif
 #ifdef USE_UART13
-    "UART13",
+    SERIAL_UART_FIRST_INDEX == 0 ? "UART14" : "UART13",
 #endif
 #ifdef USE_UART14
-    "UART14",
+    SERIAL_UART_FIRST_INDEX == 0 ? "UART15" : "UART14",
 #endif
 #ifdef USE_UART15
-    "UART15",
+    SERIAL_UART_FIRST_INDEX == 0 ? "UART16" : "UART15",
 #endif
 #ifdef USE_SOFTSERIAL1
     "SOFT1",
@@ -416,6 +416,31 @@ const char* serialName(serialPortIdentifier_e identifier, const char* notFound)
 {
     const int idx = findSerialPortIndexByIdentifier(identifier);
     return idx >= 0 ? serialPortNames[idx] : notFound;
+}
+
+int serialPortIdentifierToExternal(serialPortIdentifier_e identifier)
+{
+#if SERIAL_UART_FIRST_INDEX == 0
+    if (identifier >= SERIAL_PORT_UART_FIRST && identifier <= SERIAL_PORT_UART15) {
+        return identifier + 1;
+    }
+#endif
+    return identifier;
+}
+
+serialPortIdentifier_e serialPortIdentifierFromExternal(int identifier)
+{
+#if SERIAL_UART_FIRST_INDEX == 0
+    // Identifier 50 is outside the one-based public UART namespace. Do not
+    // accept it as a second alias for the first hardware port.
+    if (identifier == SERIAL_PORT_UART_FIRST) {
+        return SERIAL_PORT_NONE;
+    }
+    if (identifier > SERIAL_PORT_UART_FIRST && identifier <= SERIAL_PORT_UART15 + 1) {
+        return (serialPortIdentifier_e)(identifier - 1);
+    }
+#endif
+    return (serialPortIdentifier_e)identifier;
 }
 
 serialPortUsage_t *findSerialPortUsageByIdentifier(serialPortIdentifier_e identifier)

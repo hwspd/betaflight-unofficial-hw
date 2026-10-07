@@ -100,7 +100,8 @@ jobs:
 
           - Build completed in GitHub Actions for all included targets.
           - Build success is not hardware validation of these exact artifacts.
-          - HAKRCF460V2 has prior bench evidence for boot, USB/CLI, sensors, flash detection and CRSF reception on physical UART1 / firmware UART0. Physical UART2 remains unresolved.
+          - HAKRCF460V2 has prior bench evidence for boot, USB/CLI, sensors, flash detection and CRSF reception on physical UART1 (formerly exposed as UART0, now UART1). Physical UART2 remains unresolved.
+          - Hardware UART CLI names and MSP identifiers are one-based; internal GD32 hardware identifiers and saved binary port assignments are preserved. Old textual UART commands require name translation; see src/config-local/README.md.
           - ARROWGD460V5 is a new board profile adapted from a supplied config. Boot, USB/CLI, sensors, storage, UARTs, ADC, outputs and all peripheral behavior are hardware-untested.
           - GD32H757V1STARTV1 requires current hardware evidence before publication.
           - Motor outputs, DShot, analog OSD, storage writes, arming, and flight behavior are not validated by this build workflow.

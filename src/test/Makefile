@@ -257,6 +257,11 @@ io_serial_unittest_SRC := \
 		$(USER_DIR)/io/serial.c \
 		$(USER_DIR)/io/serial_resource.c
 
+io_serial_zero_based_unittest_SRC := $(io_serial_unittest_SRC)
+io_serial_zero_based_unittest_DEFINES := \
+		SERIAL_UART_FIRST_INDEX=0 \
+		USE_UART0=
+
 
 ledstrip_unittest_SRC := \
 		$(USER_DIR)/common/bitarray.c \

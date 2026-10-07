@@ -17,17 +17,17 @@ The local-board prerelease matrix builds HAKRCF460V2, ARROWGD460V5 and GD32H757V
 
 ## Port numbering
 
-The supplied config uses one-based UART/SPI/I2C names. This fork's GD32 hardware tables use zero-based names, so those names and peripheral references are translated without changing physical pins.
+The supplied config uses one-based UART/SPI/I2C names. This fork's GD32 hardware tables use zero-based names internally, so config macros and peripheral references are translated without changing physical pins. The firmware's CLI/MSP UART interface is one-based; see [UART naming and migration](../../README.md).
 
-| Supplied board port | Firmware port | TX | RX |
+| Board and CLI/Configurator port | Internal peripheral | TX | RX |
 |---|---|---|---|
-| UART1 | UART0 / USART0 | PB6 | PB7 |
-| UART2 | UART1 / USART1 | PA2 | PA3 |
-| UART3 | UART2 / USART2 | PC10 | PC11 |
-| UART4 | UART3 | None | PA1 |
-| UART5 | UART4 | PC12 | PD2 |
+| UART1 | USART0 / UART0_* | PB6 | PB7 |
+| UART2 | USART1 / UART1_* | PA2 | PA3 |
+| UART3 | USART2 / UART2_* | PC10 | PC11 |
+| UART4 | UART3 / UART3_* | None | PA1 |
+| UART5 | UART4 / UART4_* | PC12 | PD2 |
 
-UART3 is intentionally RX-only: PA0 is the LED strip pin. The supplied ESC sensor port UART4 becomes firmware UART3. No external inverter is defined; PC0 is voltage sensing, not inverter control. Inverted receiver protocols require the actual board's signal path to be checked.
+External UART4 (internal UART3) is intentionally RX-only: PA0 is the LED strip pin. The supplied ESC sensor port UART4 is implemented using `SERIAL_PORT_UART3` internally and is exposed as UART4. No external inverter is defined; PC0 is voltage sensing, not inverter control. Inverted receiver protocols require the actual board's signal path to be checked.
 
 ## Sensors and buses
 
